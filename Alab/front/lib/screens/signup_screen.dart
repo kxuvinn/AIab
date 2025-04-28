@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'grade_select_screen.dart';
+
 class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
+
   @override
   _SignupScreenState createState() => _SignupScreenState();
 }
@@ -10,53 +14,60 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _nicknameController = TextEditingController();
   final TextEditingController _gradeController = TextEditingController();
-  final TextEditingController _subjectController = TextEditingController();
 
   Future<void> _signup() async {
+    final nickname = _nicknameController.text.trim();
+    final grade = _gradeController.text.trim();
+    if (nickname.isEmpty || grade.isEmpty) return;
+
     final response = await http.post(
-      Uri.parse('http://127.0.0.1:8000/signup'),
+      Uri.parse('http://192.168.200.193:8000/signup'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'nickname': _nicknameController.text,
-        'grade': _gradeController.text,
-        'subject': _subjectController.text,
-      }),
+      body: jsonEncode({'nickname': nickname, 'grade': grade}),
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final responseData = jsonDecode(response.body);
+      if (responseData['success']) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => GradeSelectScreen(nickname: nickname)),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('회원가입 실패: ${responseData["message"]}')),
+        );
+      }
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(data['message'])),
+        const SnackBar(content: Text('서버 연결 실패')),
       );
-      Navigator.pop(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('회원가입')),
+      appBar: AppBar(title: const Text('회원가입')),
       body: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
               controller: _nicknameController,
-              decoration: InputDecoration(labelText: '닉네임 입력'),
+              decoration: const InputDecoration(labelText: '닉네임 입력'),
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: _gradeController,
-              decoration: InputDecoration(labelText: '학년 입력 (ex. 중1)'),
+              decoration:
+                  const InputDecoration(labelText: '학년 입력 (중1, 중2, 중3)'),
             ),
-            TextField(
-              controller: _subjectController,
-              decoration: InputDecoration(labelText: '단원 입력 (ex. 정수와 유리수)'),
-            ),
-            SizedBox(height: 20),
+            const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _signup,
-              child: Text('회원가입 완료'),
+              child: const Text('회원가입 완료'),
             ),
           ],
         ),
