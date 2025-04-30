@@ -18,7 +18,7 @@ class _SignupScreenState extends State<SignupScreen> {
   String? selectedGrade; // 선택한 학년
   bool isIdChecked = false;
 
-  final List<String> gradeOptions = ['중1', '중2', '중3', '고1', '고2', '고3'];
+  final List<String> gradeOptions = ['고1', '고2', '고3'];
 
   @override
   void dispose() {
