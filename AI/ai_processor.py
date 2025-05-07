@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 from openai import OpenAI
 from AI.template_matcher import match_template  # 템플릿 매칭 함수 불러오기
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") or "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"
-MATHPIX_APP_ID = os.getenv("MATHPIX_APP_ID") or "alab_team_7172e0_86e9ca"
-MATHPIX_APP_KEY = os.getenv("MATHPIX_APP_KEY") or "54a3d42f8bd629cbbb564c94d4b87e9f9b8568dae0fe11fabe927729033cbf33"
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") or "YOUR_KEY"
+MATHPIX_APP_ID = os.getenv("MATHPIX_APP_ID") or "YOUR_ID"
+MATHPIX_APP_KEY = os.getenv("MATHPIX_APP_KEY") or "YOUR_KEY"
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
