@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import '../widgets/custom_navbar.dart';
 
 class CalculatorScreen extends StatelessWidget {
-  const CalculatorScreen({super.key});
+  final String userGrade;
+  final String userId;
+  
+  const CalculatorScreen({required this.userGrade, required this.userId, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +23,13 @@ class CalculatorScreen extends StatelessWidget {
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
       ),
-      bottomNavigationBar: const Padding(
+      bottomNavigationBar: Padding(
         padding: EdgeInsets.only(bottom: 16),
-        child: CustomNavBar(currentIndex: 1),
+        child: CustomNavBar(
+          currentIndex: 1,
+          userGrade: userGrade,
+          userId: userId,
+        ),
       ),
     );
   }

@@ -3,38 +3,56 @@ import 'package:alab/screens/home_screen.dart';
 import 'package:alab/screens/calculator_screen.dart';
 import 'package:alab/screens/note_screen.dart';
 import 'package:alab/screens/profile_screen.dart';
+import 'package:alab/screens/gpt_quiz_screen.dart';
 
 class CustomNavBar extends StatelessWidget {
   final int currentIndex;
+  final String userGrade;
+  final String userId;
 
-  const CustomNavBar({super.key, required this.currentIndex});
+  const CustomNavBar({
+    super.key,
+    required this.currentIndex,
+    required this.userGrade,
+    required this.userId,
+  });
 
   void _navigate(BuildContext context, int index) {
-    if (index == currentIndex) return;
+  if (index == currentIndex) return;
 
-    Widget target;
-    switch (index) {
-      case 0:
-        target = const HomeScreen();
-        break;
-      case 1:
-        target = const CalculatorScreen();
-        break;
-      case 2:
-        target = const NoteScreen();
-        break;
-      case 3:
-        target = const ProfileScreen();
-        break;
-      default:
-        return;
-    }
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => target),
-    );
+  Widget target;
+  switch (index) {
+    case 0:
+      target = HomeScreen(userGrade: userGrade, userId: userId);
+      break;
+    case 1:
+      target = CalculatorScreen(userGrade: userGrade, userId: userId);
+      break;
+    case 2:
+      target = NoteScreen(userGrade: userGrade, userId: userId);
+      break;
+    case 3:
+      target = ProfileScreen(userGrade: userGrade, userId: userId);
+      break;
+    default:
+      return;
   }
+
+  Navigator.pushReplacement(
+    context,
+    PageRouteBuilder(
+      pageBuilder: (_, __, ___) => target,
+      transitionsBuilder: (_, animation, __, child) {
+        return FadeTransition(
+          opacity: animation.drive(CurveTween(curve: Curves.easeInOut)),
+          child: child,
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 250),
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {

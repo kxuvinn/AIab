@@ -26,23 +26,29 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     if (response.statusCode == 200) {
       final password = jsonDecode(response.body)["password"];
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('비밀번호 찾기 성공'),
-          content: Text('당신의 비밀번호: $password'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('확인'),
-            ),
-          ],
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+      if(mounted){ //dispose()시 context 사용 오류 방지
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('비밀번호 찾기 성공'),
+            content: Text('당신의 비밀번호: $password'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('확인'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+    
+    else {
+      if(mounted){
+        ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('실패: ${jsonDecode(response.body)["detail"]}')),
       );
+      }
     }
   }
 

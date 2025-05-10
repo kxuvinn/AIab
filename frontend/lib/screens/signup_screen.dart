@@ -18,7 +18,7 @@ class _SignupScreenState extends State<SignupScreen> {
   String? selectedGrade; // 선택한 학년
   bool isIdChecked = false;
 
-  final List<String> gradeOptions = ['고1', '고2', '고3'];
+  final List<String> gradeOptions = ['중1', '중2', '중3', '고1', '고2', '고3'];
 
   @override
   void dispose() {
@@ -29,66 +29,68 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void showMessage(String message, {bool success = false}) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  success ? Icons.check_circle : Icons.error,
-                  color: success ? Colors.green : Colors.red,
-                  size: 48,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  success ? '성공' : '오류',
-                  style: const TextStyle(
-                    fontFamily: 'NotoSans',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
+    if(mounted){ //위젯 dispose()시 context 사용 오류 방지
+      showDialog(
+        context: context,
+        builder: (context) {
+          return Dialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    success ? Icons.check_circle : Icons.error,
+                    color: success ? Colors.green : Colors.red,
+                    size: 48,
                   ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  message,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontFamily: 'NotoSans',
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[700],
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    '확인',
-                    style: TextStyle(
+                  const SizedBox(height: 16),
+                  Text(
+                    success ? '성공' : '오류',
+                    style: const TextStyle(
                       fontFamily: 'NotoSans',
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      fontSize: 20,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontFamily: 'NotoSans',
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[700],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      '확인',
+                      style: TextStyle(
+                        fontFamily: 'NotoSans',
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    );
+          );
+        },
+      );
+    }
   }
 
   Future<void> checkId() async {
@@ -160,60 +162,63 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (response.statusCode == 200 && data['success'] == true) {
         // 여기 회원가입 성공 팝업 + 확인 누르면 WelcomeScreen 이동
-        showDialog(
-          context: context,
-          builder: (context) {
-            return Dialog(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.check_circle, color: Colors.green, size: 48),
-                    const SizedBox(height: 16),
-                    const Text(
-                      '회원가입 성공!',
-                      style: TextStyle(fontFamily: 'NotoSans', fontWeight: FontWeight.bold, fontSize: 20),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      '회원가입이 완료되었습니다!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontFamily: 'NotoSans', fontSize: 16),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[700],
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+
+        if(mounted){ //disepose()시 context 사용 오류 방지
+          showDialog(
+            context: context,
+            builder: (context) {
+              return Dialog(
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.check_circle, color: Colors.green, size: 48),
+                      const SizedBox(height: 16),
+                      const Text(
+                        '회원가입 성공!',
+                        style: TextStyle(fontFamily: 'NotoSans', fontWeight: FontWeight.bold, fontSize: 20),
                       ),
-                      onPressed: () {
-                        Navigator.pop(context); // 팝업 먼저 닫고
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-                          (route) => false,
-                        );
-                      },
-                      child: const Text(
-                        '확인',
-                        style: TextStyle(
-                          fontFamily: 'NotoSans',
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                      const SizedBox(height: 12),
+                      const Text(
+                        '회원가입이 완료되었습니다!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontFamily: 'NotoSans', fontSize: 16),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[700],
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context); // 팝업 먼저 닫고
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+                            (route) => false,
+                          );
+                        },
+                        child: const Text(
+                          '확인',
+                          style: TextStyle(
+                            fontFamily: 'NotoSans',
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
-        );
+              );
+            },
+          );
+        }
       } else {
         showMessage(data['message'] ?? '회원가입 실패');
       }
