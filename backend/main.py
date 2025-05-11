@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from typing import List
 import re
+from img_upload import router as upload_router
 
 load_dotenv()
 client = OpenAI()
@@ -25,6 +26,7 @@ USER_DATA_FILE = os.path.join(BASE_DIR, 'users.json')
 SOLVE_LOG_FILE = os.path.join(BASE_DIR, 'solve_log.json')
 
 app = FastAPI()
+app.include_router(upload_router)
 
 app.add_middleware(
     CORSMiddleware,

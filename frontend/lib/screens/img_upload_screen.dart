@@ -11,7 +11,6 @@ State<ImageUploadScreen> createState() => _ImageUploadScreenState();
 
   final picker = ImagePicker();
   XFile? image; // 카메라로 촬영한 이미지를 저장할 변수
-  //List<XFile?> multiImage = []; // 갤러리에서 여러 장의 사진을 선택해서 저장할 변수
   List<XFile?> images = []; // 가져온 사진들을 보여주기 위한 변수
 
 class _ImageUploadScreenState extends State<ImageUploadScreen>{
@@ -55,33 +54,53 @@ class _ImageUploadScreenState extends State<ImageUploadScreen>{
             children: [
               const SizedBox(height: 40),
 
-              // 문제 사진 촬영 버튼
-              ElevatedButton.icon(
+                          // ✅ 카메라로 촬영하기 버튼
+            Container(
+              margin: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: Colors.lightBlueAccent,
+                borderRadius: BorderRadius.circular(5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withAlpha((255 * 0.5).toInt()),
+                    spreadRadius: 0.5,
+                    blurRadius: 5,
+                  )
+                ],
+              ),
+
+              child: IconButton(
                 onPressed: () async {
-                  final img = await picker.pickImage(source: ImageSource.camera);
-                  if (img != null) {
+                  final picked = await picker.pickImage(source: ImageSource.camera);
+                  if (picked != null) {
                     if (!mounted) return;
                     setState(() {
-                      images.add(img);
+                      images.add(picked);
                     });
-                    await uploadImage(img); //서버로 사진 업로드
+                    await uploadImage(picked); //서버로 사진 업로드
                   }
                 },
                 icon: const Icon(Icons.add_a_photo, size: 30, color: Colors.white),
-                label: const Text(
-                  '문제 사진 촬영',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlueAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
               ),
-              const SizedBox(height: 20),
+            ),
 
-              // 갤러리에서 문제 사진 선택 버튼
-              ElevatedButton.icon(
+            // ✅ 갤러리에서 이미지 선택 버튼
+            Container(
+              margin: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: Colors.lightBlueAccent,
+                borderRadius: BorderRadius.circular(5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withAlpha((255 * 0.5).toInt()),
+                    spreadRadius: 0.5,
+                    blurRadius: 5,
+                  )
+                ],
+              ),
+              child: IconButton(
                 onPressed: () async {
                   final pickedImages = await picker.pickMultiImage();
                   if (pickedImages.isNotEmpty) {
@@ -90,21 +109,65 @@ class _ImageUploadScreenState extends State<ImageUploadScreen>{
                       images.addAll(pickedImages);
                     });
                     for (var img in pickedImages) {
-                      await uploadImage(img); // 업로드 함수 호출
+                      await uploadImage(img); // ✅ 업로드 함수 호출
                     }
                   }
                 },
                 icon: const Icon(Icons.add_photo_alternate_outlined, size: 30, color: Colors.white),
-                label: const Text(
-                  '갤러리에서 문제 사진 선택',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlueAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
               ),
+            ),
+
+              // // 문제 사진 촬영 버튼
+              // ElevatedButton.icon(
+              //   onPressed: () async {
+              //     final img = await picker.pickImage(source: ImageSource.camera);
+              //     if (img != null) {
+              //       if (!mounted) return;
+              //       setState(() {
+              //         images.add(img);
+              //       });
+              //       await uploadImage(img); //서버로 사진 업로드
+              //     }
+              //   },
+              //   icon: const Icon(Icons.add_a_photo, size: 30, color: Colors.white),
+              //   label: const Text(
+              //     '문제 사진 촬영',
+              //     style: TextStyle(fontSize: 16, color: Colors.white),
+              //   ),
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: Colors.lightBlueAccent,
+              //     padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 16),
+              //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              //   ),
+              // ),
+              // const SizedBox(height: 20),
+
+              // // 갤러리에서 문제 사진 선택 버튼
+              // ElevatedButton.icon(
+              //   onPressed: () async {
+              //     final pickedImages = await picker.pickMultiImage();
+              //     if (pickedImages.isNotEmpty) {
+              //       if (!mounted) return;
+              //       setState(() {
+              //         images.addAll(pickedImages);
+              //       });
+              //       for (var img in pickedImages) {
+              //         await uploadImage(img); // 업로드 함수 호출
+              //       }
+              //     }
+              //   },
+              //   icon: const Icon(Icons.add_photo_alternate_outlined, size: 30, color: Colors.white),
+              //   label: const Text(
+              //     '갤러리에서 문제 사진 선택',
+              //     style: TextStyle(fontSize: 16, color: Colors.white),
+              //   ),
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: Colors.lightBlueAccent,
+              //     padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 16),
+              //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              //   ),
+              // ),
+              
             ],
           ),
         )

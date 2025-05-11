@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_navbar.dart';
 import '../screens/gpt_quiz_screen.dart';
-
+import '../screens/img_upload_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final String userGrade;
