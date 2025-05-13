@@ -4,6 +4,11 @@ import os, shutil
 router = APIRouter()
 
 UPLOAD_DIR = "problems"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) 
+UPLOAD_DIR = os.path.join(BASE_DIR, "AI", "testcases", "problems")
+
+print("UPLOAD_DIR: ", UPLOAD_DIR)
+
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/upload")
