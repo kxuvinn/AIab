@@ -1,7 +1,7 @@
 import json
 import os
 
-# ✅ 템플릿 JSON 파일 경로 (절대 경로 기준으로 수정)
+#템플릿 JSON 파일 경로
 template_path = os.path.abspath(os.path.join(os.path.dirname(__file__),  "templates", "templates.json"))
 
 # 템플릿 로딩
