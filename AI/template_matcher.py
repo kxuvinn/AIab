@@ -2,7 +2,7 @@ import json
 import os
 
 #템플릿 JSON 파일 경로
-template_path = os.path.abspath(os.path.join(os.path.dirname(__file__),  "templates", "templates.json"))
+template_path = os.path.abspath(os.path.join(os.path.dirname(__file__),  "templates", "math2_templates.json"))  #나중에 학생학년, 시험범위 입력받아서 해당하는 템플릿으로 선택하도록 연동
 
 # 템플릿 로딩
 with open(template_path, "r", encoding="utf-8") as f:
