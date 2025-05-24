@@ -13,7 +13,7 @@ MATHPIX_APP_KEY = os.getenv("MATHPIX_APP_KEY") or "YOUR_KEY"
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-def process_image(image_path: str) -> str:
+def process_image(image_path: str, grade: str) -> str:
     with open(image_path, "rb") as image_file:
         img_base64 = base64.b64encode(image_file.read()).decode()
 
@@ -34,7 +34,7 @@ def process_image(image_path: str) -> str:
         return "❗ OCR 실패: 수식을 읽을 수 없습니다."
 
     # 템플릿 매칭 시도
-    matched_template = match_template(text_raw)
+    matched_template = match_template(text_raw, grade)
 
     if matched_template:
         print(f"✅ 템플릿 매칭됨: {matched_template.get('name', '이름 없음')}")
@@ -61,7 +61,7 @@ def process_image(image_path: str) -> str:
 {text_raw}
 """
 
-    print("🧠 최종 프롬프트:")
+    print(" 최종 프롬프트:")
     print(explain_prompt)
 
     solve_response = client.chat.completions.create(
@@ -97,6 +97,6 @@ def process_image(image_path: str) -> str:
 
     result_output = (
         f"📄 OCR 인식된 문제:\n{text_raw}\n\n"
-        f"🧠 문제 풀이:\n{explanation}"
+        f" 문제 풀이:\n{explanation}"
     )
     return result_output
