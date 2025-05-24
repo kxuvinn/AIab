@@ -1,3 +1,7 @@
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from fastapi import FastAPI, Body, Query
 from fastapi.middleware.cors import CORSMiddleware
 from models import (
@@ -10,17 +14,13 @@ from models import (
     QuizResult
 )
 from datetime import date
-import os
 import json
 from dotenv import load_dotenv
 from openai import OpenAI
 from typing import List
 import re
-import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-from img_upload import router as upload_router
+from app_server import router as upload_router
 from AI.ai_processor import process_image
 
 load_dotenv()

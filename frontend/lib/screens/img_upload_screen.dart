@@ -3,7 +3,9 @@ import 'package:image_picker/image_picker.dart';
 import 'answer_loading_screen.dart';
 
 class ImageUploadScreen extends StatefulWidget {
-  const ImageUploadScreen({super.key});
+  final String userGrade;
+
+  const ImageUploadScreen({super.key, required this.userGrade});
 
   @override
   State<ImageUploadScreen> createState() => _ImageUploadScreenState();
@@ -19,7 +21,10 @@ class _ImageUploadScreenState extends State<ImageUploadScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => AnswerLoadingScreen(image: pickedImage),
+          builder: (_) => AnswerLoadingScreen(
+            image: pickedImage,
+            userGrade: widget.userGrade,  // grade 전달
+          ),
         ),
       );
     }

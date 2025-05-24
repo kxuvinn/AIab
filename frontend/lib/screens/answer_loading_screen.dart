@@ -7,8 +7,9 @@ import 'result_screen.dart';
 
 class AnswerLoadingScreen extends StatefulWidget {
   final XFile image;
+  final String userGrade;
 
-  const AnswerLoadingScreen({super.key, required this.image});
+  const AnswerLoadingScreen({super.key, required this.image, required this.userGrade});
 
   @override
   State<AnswerLoadingScreen> createState() => _AnswerLoadingScreenState();
@@ -24,7 +25,11 @@ class _AnswerLoadingScreenState extends State<AnswerLoadingScreen> {
   Future<void> sendImageAndGetResult() async {
     var uri = Uri.parse('http://10.0.2.2:8000/upload');
     var request = http.MultipartRequest('POST', uri);
+
+    // 사진 파일 첨부
     request.files.add(await http.MultipartFile.fromPath('file', widget.image.path));
+    // grade 필드 추가
+    request.fields['grade'] = widget.userGrade;
 
     try {
       var response = await request.send();
@@ -32,7 +37,7 @@ class _AnswerLoadingScreenState extends State<AnswerLoadingScreen> {
       final responseBody = await response.stream.bytesToString();
 
       if (response.statusCode == 200) {
-        // 백엔드에서 plain text로 결과 반환하므로 바로 전달
+        // 백엔드에서 plain text로 결과 반환
         final resultText = responseBody;
 
         if (!mounted) return;

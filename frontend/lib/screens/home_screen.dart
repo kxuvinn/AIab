@@ -1,3 +1,4 @@
+// home_screen.dart
 import 'package:flutter/material.dart';
 import '../widgets/custom_navbar.dart';
 import '../screens/gpt_quiz_screen.dart';
@@ -27,7 +28,7 @@ class HomeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 40),
-            //오늘의 퀴즈
+            // 오늘의 퀴즈
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -42,22 +43,23 @@ class HomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text("오늘의 퀴즈", 
-              style: TextStyle(
-                fontSize: 16,
-                fontFamily: 'NotoSans',
-                color: Colors.white,
-                )
+              child: const Text(
+                "오늘의 퀴즈",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontFamily: 'NotoSans',
+                  color: Colors.white,
                 ),
+              ),
             ),
             const SizedBox(height: 20),
-            //문제 검색 버튼
+            // 문제 검색 버튼
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const ImageUploadScreen(),
+                    builder: (_) => ImageUploadScreen(userGrade: userGrade),
                   ),
                 );
               },
@@ -79,7 +81,7 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.only(bottom: 16),
         child: CustomNavBar(
           currentIndex: 0,
           userGrade: userGrade,
