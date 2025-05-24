@@ -13,7 +13,7 @@ def run_all_tests():
         print("❗ 테스트할 이미지가 없습니다. 'testcases/problems/' 폴더를 확인하세요.")
         return
     
-    grade ="고3" //임의로 고3설정해둠!
+    grade ="고3" #임의로 고3설정해둠!
 
     for fname in problems:
         print("=" * 80)
