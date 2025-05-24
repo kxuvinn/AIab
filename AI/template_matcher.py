@@ -37,7 +37,7 @@ def match_template(problem_text: str, grade: str):
             keywords = template_data.get("condition_keywords", [])
             for keyword in keywords:
                 if normalize_text(keyword) in normalized_text:
-                    print(f"✅ 템플릿 매칭됨: {template_name}")
+                    
                     template_data["name"] = template_name
                     return template_data
     print("❌ 템플릿 매칭 실패")
