@@ -14,7 +14,7 @@ def load_templates_by_grade(grade: str) -> list:
     elif grade.startswith("고2"):
         filenames = ["math1_templates.json", "math2_templates.json"]
     elif grade.startswith("고3"):
-        filenames = ["math1_templates.json", "math2_templates.json", "calculus_templates.json"]
+        filenames = ["math1_templates.json", "math2_templates.json", "calculus_templates.json", "geometry_templates.json"]
     else:
         return []
 
