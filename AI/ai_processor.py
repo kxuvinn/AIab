@@ -13,7 +13,7 @@ MATHPIX_APP_KEY = os.getenv("MATHPIX_APP_KEY") or "YOUR_KEY"
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-def process_image(image_path: str) -> str:
+def process_image(image_path: str, grade: str) -> str:
     with open(image_path, "rb") as image_file:
         img_base64 = base64.b64encode(image_file.read()).decode()
 
@@ -34,7 +34,7 @@ def process_image(image_path: str) -> str:
         return "❗ OCR 실패: 수식을 읽을 수 없습니다."
 
     # 템플릿 매칭 시도
-    matched_template = match_template(text_raw)
+    matched_template = match_template(text_raw, grade)
 
     if matched_template:
         print(f"✅ 템플릿 매칭됨: {matched_template.get('name', '이름 없음')}")
@@ -42,7 +42,8 @@ def process_image(image_path: str) -> str:
         step_text = "\n".join([f"{i+1}. {s}" for i, s in enumerate(steps)])
         explain_prompt = f"""
 다음 수학 문제를 반드시 아래의 5단계 풀이 흐름을 그대로 따르며, 각 단계 번호와 설명 문장은 절대 수정하지 말고 사용해.
-각 단계 아래에 필요한 계산과 해설만 추가해. 구조나 문장 수정 없이 고정된 틀을 지켜야 해.
+각 단계 아래에 필요한 계산과 해설만 추가해. 구조나 문장 수정 없이 고정된 틀을 지켜야 해.GPT는 아래 풀이 구조는 사용하되 출력에는 보이지 않게 해줘.
+각 단계는 순서대로 따라가되, 답변에는 오직 해설만 출력하고 문제나 지시문은 포함하지 마. 계산실수 절대 하지마 답이 보기에 없는 경우는 없어. 템플릿 프롬프트 내용은 결과에 표시하지마.
 
 풀이 순서:
 {step_text}
@@ -61,7 +62,7 @@ def process_image(image_path: str) -> str:
 {text_raw}
 """
 
-    print("🧠 최종 프롬프트:")
+    print(" 최종 프롬프트:")
     print(explain_prompt)
 
     solve_response = client.chat.completions.create(
@@ -97,6 +98,6 @@ def process_image(image_path: str) -> str:
 
     result_output = (
         f"📄 OCR 인식된 문제:\n{text_raw}\n\n"
-        f"🧠 문제 풀이:\n{explanation}"
+        f" 문제 풀이:\n{explanation}"
     )
     return result_output
