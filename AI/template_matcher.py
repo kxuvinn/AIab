@@ -10,7 +10,7 @@ def normalize_text(text):
 def load_templates_by_grade(grade: str) -> list:
     templates = []
     if grade.startswith("고1"):
-        filenames = ["math1_templates.json"]
+        filenames = ["math_templates.json"]
     elif grade.startswith("고2"):
         filenames = ["math1_templates.json", "math2_templates.json"]
     elif grade.startswith("고3"):
