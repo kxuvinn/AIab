@@ -2,11 +2,14 @@ import base64
 import requests
 import os
 import re
+import json
 import numpy as np
 import matplotlib.pyplot as plt
 from openai import OpenAI
 from AI.template_matcher import match_template  # 템플릿 매칭 함수 불러오기
+from dotenv import load_dotenv
 
+load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") or "YOUR_KEY"
 MATHPIX_APP_ID = os.getenv("MATHPIX_APP_ID") or "YOUR_ID"
 MATHPIX_APP_KEY = os.getenv("MATHPIX_APP_KEY") or "YOUR_KEY"
@@ -101,3 +104,40 @@ def process_image(image_path: str, grade: str) -> str:
         f" 문제 풀이:\n{explanation}"
     )
     return result_output
+
+#추천문제생성 (GPT기반)
+def recommend_problems_with_gpt(user_id: str, solve_log_path: str) -> list:
+    with open(solve_log_path, "r", encoding="utf-8") as f:
+        log = json.load(f)
+
+    user_log = log.get(user_id)
+    if not user_log:
+        return "[]"
+
+    entries = []
+    for date, problems in user_log.items():
+        for p in problems:
+            q = p.get("question", "")[:80].replace("\n", " ")
+            ua = p.get("user_answer", "")
+            ca = p.get("correct_answer", "")
+            status = "맞음" if ua == ca else "틀림"
+            entries.append(f"- Q: {q} / 사용자의 답: {ua} / 정답: {ca} → {status}")
+
+    prompt = (
+    "다음은 사용자의 수학 문제 풀이 기록입니다. 많이 틀린 단원을 바탕으로 "
+    "**단원명(unit), 난이도(difficulty), 문제(question)** 정보를 포함한 "
+    "**JSON 리스트 형식**으로 출력하세요. 설명 없이 JSON만 출력하세요.\n\n"
+    + "\n".join(entries[-20:])
+)
+    print("📦 GPT PROMPT:\n", prompt) 
+
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7,
+    )
+    print("📦 GPT RESPONSE:\n", response.choices[0].message.content) 
+    try:
+        return json.loads(response.choices[0].message.content)
+    except json.JSONDecodeError:
+        return []
