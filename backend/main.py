@@ -246,3 +246,81 @@ async def get_quiz_history(user_id: str = Query(...)):
         return {}
 
     return logs[user_id]
+
+#AI추천문제
+@app.get("/recommend/{user_id}")
+async def recommend(user_id: str):
+    path = os.path.join(os.path.dirname(__file__), "solve_log.json")
+    try:
+        result = recommend_problems_with_gpt(user_id, path)
+
+        #  이미 리스트로 파싱된 경우 처리 (str이 아님)
+        if isinstance(result, list):
+            return {"recommended": result}
+        else:
+            parsed = json.loads(result)
+            return {"recommended": parsed}
+
+    except Exception as e:
+        return {"recommended": [], "error": str(e)}
+#AI추천문제푼거해설＋기록
+
+SOLVE_LOG_FILE = os.path.join(os.path.dirname(__file__), "solve_log.json")
+
+class AnswerRequest(BaseModel):
+    user_id: str
+    question: str
+    user_answer: str
+    correct_answer: str
+
+@app.post("/check-answer")
+async def check_answer(data: AnswerRequest):
+    user = data.user_answer.strip()
+    correct = data.correct_answer.strip()
+    today = str(date.today())
+
+    is_correct = user == correct
+
+    explanation = ""
+    if not is_correct:
+        prompt = (
+            f"문제: {data.question}\n"
+            f"사용자 답: {user}\n"
+            f"정답: {correct}\n\n"
+            f"문제 풀이를 5단계로 나눠서 차근차근 설명해줘. 각 단계는 '1단계:', '2단계:' 형식으로 시작하게 해."
+        )
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+        )
+        explanation = response.choices[0].message.content.strip()
+
+    # 기록 저장
+    try:
+        with open(SOLVE_LOG_FILE, "r", encoding="utf-8") as f:
+            logs = json.load(f)
+    except:
+        logs = {}
+
+    if data.user_id not in logs:
+        logs[data.user_id] = {}
+    if today not in logs[data.user_id]:
+        logs[data.user_id][today] = []
+
+    logs[data.user_id][today].append({
+        "question": data.question,
+        "user_answer": data.user_answer,
+        "correct_answer": data.correct_answer,
+        "is_correct": is_correct,
+        "explanation": explanation
+    })
+
+    with open(SOLVE_LOG_FILE, "w", encoding="utf-8") as f:
+        json.dump(logs, f, indent=2, ensure_ascii=False)
+
+    return {
+        "result": "정답입니다!" if is_correct else "틀렸습니다.",
+        "is_correct": is_correct,
+        "explanation": explanation
+    }
