@@ -22,6 +22,7 @@ import re
 
 from app_server import router as upload_router
 from AI.ai_processor import process_image
+from AI.ai_processor import recommend_problems_with_gpt
 
 load_dotenv()
 client = OpenAI()
