@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from fastapi import FastAPI, Body, Query
 from fastapi.middleware.cors import CORSMiddleware
-from models import (
+from .models import (
     SignupRequest,
     LoginRequest,
     CheckIdRequest,
@@ -22,7 +22,7 @@ from openai import OpenAI
 from typing import List
 import re
 
-from app_server import router as upload_router
+from .app_server import router as upload_router
 from AI.ai_processor import process_image
 from AI.ai_processor import recommend_problems_with_gpt
 
