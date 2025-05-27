@@ -1,36 +1,170 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:typed_data';
 import '../widgets/custom_navbar.dart';
 
 class CalculatorScreen extends StatelessWidget {
   final String userGrade;
   final String userId;
-  
-  const CalculatorScreen({required this.userGrade, required this.userId, super.key});
+
+  const CalculatorScreen({
+    required this.userGrade,
+    required this.userId,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('계산기', style: TextStyle(fontFamily: 'NotoSans', fontWeight: FontWeight.bold)),
+        title: const Text(
+          '계산기',
+          style: TextStyle(fontFamily: 'NotoSans', fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: Colors.black,
       ),
-      body: const Center(
-        child: Text(
-          'CalculatorScreen',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
+      body: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Text(
+              'CalculatorScreen',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const Expanded(child: SimpleAndGraphCalculator()),
+        ],
       ),
       bottomNavigationBar: Padding(
-        padding: EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.only(bottom: 16),
         child: CustomNavBar(
           currentIndex: 1,
           userGrade: userGrade,
           userId: userId,
         ),
       ),
+    );
+  }
+}
+
+class SimpleAndGraphCalculator extends StatefulWidget {
+  const SimpleAndGraphCalculator({super.key});
+
+  @override
+  State<SimpleAndGraphCalculator> createState() =>
+      _SimpleAndGraphCalculatorState();
+}
+
+class _SimpleAndGraphCalculatorState extends State<SimpleAndGraphCalculator>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final simpleController = TextEditingController();
+  final graphController = TextEditingController();
+
+  String simpleResult = '';
+  Uint8List? graphImage;
+
+  final baseUrl = "http://10.0.2.2:8000";
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  Future<void> calculateSimple() async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/calculate'),
+      headers: {"Content-Type": "application/x-www-form-urlencoded"},
+      body: {"expression": simpleController.text},
+    );
+    final data = jsonDecode(res.body);
+    setState(() {
+      simpleResult = data['result']?.toString() ?? data['error'] ?? '오류 발생';
+    });
+  }
+
+  Future<void> drawGraph() async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/plot'),
+      headers: {"Content-Type": "application/x-www-form-urlencoded"},
+      body: {"expression": graphController.text},
+    );
+    final data = jsonDecode(res.body);
+    setState(() {
+      if (data['image'] != null) {
+        graphImage = base64Decode(data['image']);
+      } else {
+        graphImage = null;
+        simpleResult = data['error'] ?? '그래프 오류';
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        TabBar(
+          controller: _tabController,
+          tabs: const [Tab(text: '단순 계산기'), Tab(text: '그래프 계산기')],
+          labelColor: Colors.blue,
+          unselectedLabelColor: Colors.grey,
+        ),
+        Expanded(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: simpleController,
+                      decoration: const InputDecoration(
+                        labelText: "수식 입력 (예: 2+3*4)",
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: calculateSimple,
+                      child: const Text("계산"),
+                    ),
+                    const SizedBox(height: 12),
+                    Text("결과: $simpleResult"),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: graphController,
+                      decoration: const InputDecoration(
+                        labelText: "수식 입력 (예: x**2 - 3*x + 2)",
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: drawGraph,
+                      child: const Text("그래프 보기"),
+                    ),
+                    const SizedBox(height: 12),
+                    graphImage != null
+                        ? Image.memory(graphImage!, height: 250)
+                        : const Text("그래프 이미지 없음"),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
