@@ -21,10 +21,18 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from typing import List
 import re
+import matplotlib.pyplot as plt
+import numpy as np
+import io
+import base64
+from sympy import sympify, symbols, lambdify
 
 from .app_server import router as upload_router
 from AI.ai_processor import process_image
 from AI.ai_processor import recommend_problems_with_gpt
+
+from fastapi import Form
+from fastapi.responses import JSONResponse
 
 load_dotenv()
 client = OpenAI()
@@ -327,3 +335,37 @@ async def check_answer(data: AnswerRequest):
         "is_correct": is_correct,
         "explanation": explanation
     }
+#계산기
+@app.post("/calculate")
+async def calculate_expression(expression: str = Form(...)):
+    try:
+        result = eval(expression)
+        return {"result": result}
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"error": str(e)})
+    
+@app.post("/plot")
+async def plot_expression(expression: str = Form(...)):
+    try:
+        x = symbols('x')
+        expr = sympify(expression)
+        func = lambdify(x, expr, 'numpy')
+
+        x_vals = np.linspace(-10, 10, 400)
+        y_vals = func(x_vals)
+
+        fig, ax = plt.subplots()
+        ax.plot(x_vals, y_vals)
+        ax.set_title(f"y = {expression}")
+        ax.grid(True)
+
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close(fig)
+        buf.seek(0)
+        img_bytes = base64.b64encode(buf.read()).decode()
+
+        return {"image": img_bytes}
+    except Exception as e:
+        return JSONResponse(status_code=400, content={"error": str(e)})
+
