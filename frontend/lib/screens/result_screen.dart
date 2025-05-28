@@ -44,7 +44,7 @@ class ResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // 분할
-    final resultParts = result.split(RegExp(r'[🎯최종\s*정답\]'));
+    final resultParts = result.split(RegExp(r'최종\s*정답\]'));
     final hasExplanation = resultParts.length > 1;
 
     final explanationPart = hasExplanation ? resultParts[0] : result;
