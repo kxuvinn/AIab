@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../widgets/custom_navbar.dart';
 import '../screens/quiz_history_screen.dart';
+import '../screens/search_history_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userGrade;
@@ -203,7 +204,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ListTile(
               title: const Text("질문 기록", style: TextStyle(fontFamily: 'NotoSans')),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SearchHistoryScreen(userId: widget.userId),
+                  ),
+                );
+              },
             ),
           ],
         ),
