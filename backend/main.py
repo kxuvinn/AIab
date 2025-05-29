@@ -31,16 +31,26 @@ import base64
 import io
 from sympy import symbols, sympify, lambdify
 
-from .app_server import router as upload_router
 from AI.ai_processor import process_image
 from AI.ai_processor import recommend_problems_with_gpt
+
+import json
+from fastapi import FastAPI, APIRouter, UploadFile, File, Form, Body, Request
+from fastapi.responses import PlainTextResponse, JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
+import shutil
+import os
+from dotenv import load_dotenv
+from AI.ai_processor import process_image
+from typing import Any
+
 
 
 #load_dotenv()
 #client = OpenAI()
 
 # ⛔️ 민감 정보
-client = OpenAI(api_key="")
+client = OpenAI(api_key="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")
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -60,8 +70,6 @@ def save_json_file(path, data):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 app = FastAPI()
-
-app.include_router(upload_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -472,3 +480,107 @@ async def plot_expression(expression: str = Form(...)):
         return {"image": img_bytes}
     except Exception as e:
         return JSONResponse(status_code=400, content={"error": str(e)})
+    
+load_dotenv()
+
+UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "AI", "testcases", "problems"))
+STATIC_DIR = UPLOAD_DIR
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+print("STATIC_DIR:", STATIC_DIR)
+
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+@app.post("/upload", response_class=PlainTextResponse)
+async def upload_and_process(file: UploadFile = File(...), grade: str = Form(...)):
+    if not grade:
+        return "❗ 학년 정보가 제공되지 않았습니다."
+
+    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    try:
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+    except Exception as e:
+        return f"❗ 파일 저장 중 오류 발생: {str(e)}"
+
+    try:
+        result = process_image(file_path, grade)
+    except Exception as e:
+        return f"❗ 이미지 처리 중 오류 발생: {str(e)}"
+
+    return result
+
+@app.post("/save-json")
+async def save_json_to_file(data: dict = Body(...)):
+    json_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend", "ai_result.json"))
+    try:
+        print("✅ /save-json 라우터 호출됨")
+        print("📦 수신 데이터 확인:", data)
+
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        return {"message": "JSON 저장 완료"}
+    except Exception as e:
+        print("❌ 예외 발생:", e)
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+def recover_utf8_string(s: str) -> str:
+    try:
+        return s.encode('latin1').decode('utf-8')
+    except Exception:
+        return s
+
+def recover_nested_strings(obj: Any) -> Any:
+    if isinstance(obj, dict):
+        return {k: recover_nested_strings(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [recover_nested_strings(elem) for elem in obj]
+    elif isinstance(obj, str):
+        return recover_utf8_string(obj)
+    else:
+        return obj
+
+@app.get("/search-history")
+async def get_search_history():
+    json_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend", "ai_result.json"))
+
+    if not os.path.exists(json_path):
+        return JSONResponse(content={"error": "파일이 존재하지 않습니다."}, status_code=404)
+
+    try:
+        with open(json_path, "r", encoding="utf-8", errors="replace") as f:
+            raw_data = f.read()
+
+        try:
+            data = json.loads(raw_data)
+        except json.JSONDecodeError as e:
+            # json 형식이 깨진 경우 대응
+            return JSONResponse(content={"error": f"JSON 파싱 오류: {str(e)}"}, status_code=500)
+
+        # ✅ 모든 문자열 복원
+        fixed_data = recover_nested_strings(data)
+
+        return JSONResponse(content=fixed_data, media_type="application/json; charset=utf-8")
+    except Exception as e:
+        return JSONResponse(content={"error": f"파일 읽기 오류: {str(e)}"}, status_code=500)
+
+@app.post("/history-image")
+async def history_image_upload(image: UploadFile = File(...)):
+    try:
+        file_path = os.path.join(UPLOAD_DIR, image.filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(image.file, buffer)
+
+        image_url = f"http://10.0.2.2:8000/static/{image.filename}"
+        return {"image_url": image_url}
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+@app.get("/history-image-preview/{filename}")
+async def preview_image(filename: str):
+    file_path = os.path.join(UPLOAD_DIR, filename)
+
+    if not os.path.exists(file_path):
+        return JSONResponse(content={"error": "파일이 존재하지 않습니다."}, status_code=404)
+
+    return FileResponse(file_path, media_type="image/jpeg")

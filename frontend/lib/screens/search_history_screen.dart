@@ -22,6 +22,14 @@ class _SearchHistoryScreenState extends State<SearchHistoryScreen> {
     fetchQuizHistory();
   }
 
+  String recoverCorruptedUtf8(String input) {
+    try {
+      return utf8.decode(latin1.encode(input));
+    } catch (_) {
+      return input; // fallback
+    }
+  }
+
   Future<void> fetchQuizHistory() async {
     final response = await http.get(
       Uri.parse('http://10.0.2.2:8000/search-history?user_id=${widget.userId}'),
@@ -29,8 +37,29 @@ class _SearchHistoryScreenState extends State<SearchHistoryScreen> {
 
     if (response.statusCode == 200) {
       final decoded = jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+
+      final fixedData = decoded.map((date, list) {
+        return MapEntry(
+          date,
+          List.from(list).map((item) {
+            final steps = (item['steps'] as List?)?.map((step) {
+              return {
+                "title": recoverCorruptedUtf8(step["title"] ?? ""),
+                "content": recoverCorruptedUtf8(step["content"] ?? ""),
+              };
+            }).toList();
+
+            return {
+              ...item,
+              "answer": recoverCorruptedUtf8(item["answer"] ?? ""),
+              "steps": steps,
+            };
+          }).toList(),
+        );
+      });
+
       setState(() {
-        quizData = decoded.map((date, list) => MapEntry(date, List.from(list)));
+        quizData = fixedData;
         loading = false;
       });
     } else {
@@ -45,7 +74,7 @@ class _SearchHistoryScreenState extends State<SearchHistoryScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("풀이 기록", style: TextStyle(fontFamily: 'NotoSans', color: Colors.black)),
+        title: const Text("질문 기록", style: TextStyle(fontFamily: 'NotoSans', color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 1,
         iconTheme: const IconThemeData(color: Colors.black),
@@ -99,6 +128,7 @@ class _SearchHistoryScreenState extends State<SearchHistoryScreen> {
 
                             final steps = (item["steps"] as List?) ?? [];
                             final answer = item["answer"]?.toString().trim() ?? "";
+                            final imageUrl = item["image_url"]?.toString().trim();
 
                             return Card(
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -114,7 +144,25 @@ class _SearchHistoryScreenState extends State<SearchHistoryScreen> {
                                             fontWeight: FontWeight.bold,
                                             fontSize: 18,
                                             fontFamily: 'NotoSans')),
+
                                     const SizedBox(height: 12),
+
+                                    if (imageUrl != null && imageUrl.isNotEmpty)
+                                      Column(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(12),
+                                            child: Image.network(
+                                              'http://10.0.2.2:8000/history-image-preview/${Uri.parse(imageUrl).pathSegments.last}',
+                                              height: 200,
+                                              fit: BoxFit.contain,
+                                              errorBuilder: (context, error, stackTrace) =>
+                                                  const Text("이미지를 불러올 수 없습니다."),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 16),
+                                        ],
+                                      ),
 
                                     if (steps.isNotEmpty)
                                       ...steps.asMap().entries.map((stepEntry) {
@@ -137,6 +185,7 @@ class _SearchHistoryScreenState extends State<SearchHistoryScreen> {
                                       }),
 
                                     const SizedBox(height: 16),
+
                                     Text("최종 정답",
                                         style: TextStyle(
                                             color: themeColor,

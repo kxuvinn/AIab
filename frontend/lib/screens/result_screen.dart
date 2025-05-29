@@ -10,11 +10,21 @@ class ResultScreen extends StatelessWidget {
 
   const ResultScreen({super.key, required this.image, required this.result});
 
-  static bool _hasSent = false; // 중복 전송 방지용
+  static bool _hasSent = false;
+
+  /// UTF-8 인코딩 복구 함수
+  String recoverCorruptedUtf8(String input) {
+    try {
+      final bytes = latin1.encode(input);
+      return utf8.decode(bytes);
+    } catch (e) {
+      return input;
+    }
+  }
 
   List<Widget> _buildStepTiles(String explanation) {
     final stepRegExp = RegExp(
-      r'(?<=^|\n)(?:\d+\s*단계:|\d+\s*단계|\d+\s*\.\s*|\d+\))',
+      r'(?<=^|\n)(?:\d+\s*단계:|\d+\s*단계|\d+\s*번째\s*단계|\d+\s*\.\s*|\d+\))',
       multiLine: true,
     );
 
@@ -46,7 +56,7 @@ class ResultScreen extends StatelessWidget {
   }
 
   Map<String, dynamic> parseResultToJson(String result) {
-    final resultParts = result.split(RegExp(r'최종\s*정답\]'));
+    final resultParts = result.split(RegExp(r'\[\u{1F3AF}?\s*최종\s*정답\]', unicode: true));
     final hasExplanation = resultParts.length > 1;
 
     final explanationPart = hasExplanation ? resultParts[0] : result;
@@ -56,7 +66,7 @@ class ResultScreen extends StatelessWidget {
     final mainExplanation = explanationSplit.length > 1 ? explanationSplit[1].trim() : explanationPart;
 
     final stepRegExp = RegExp(
-      r'(?<=^|\n)(?:\d+\s*단계:|\d+\s*단계|\d+\s*\.\s*|\d+\))',
+      r'(?<=^|\n)(?:\d+\s*단계:|\d+\s*단계|\d+\s*번째\s*단계|\d+\s*\.\s*|\d+\))',
       multiLine: true,
     );
 
@@ -88,6 +98,29 @@ class ResultScreen extends StatelessWidget {
     };
   }
 
+  Future<String?> uploadImageToServer(XFile image) async {
+    final uri = Uri.parse('http://10.0.2.2:8000/history-image');
+    final request = http.MultipartRequest('POST', uri);
+
+    request.files.add(await http.MultipartFile.fromPath('image', image.path));
+
+    try {
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return responseData['image_url'];
+      } else {
+        debugPrint('❌ 이미지 업로드 실패: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('❗ 이미지 업로드 예외 발생: $e');
+    }
+
+    return null;
+  }
+
   Future<void> sendJsonToServer(String result, BuildContext context) async {
     if (_hasSent) return;
     _hasSent = true;
@@ -95,27 +128,45 @@ class ResultScreen extends StatelessWidget {
     final parsedJson = parseResultToJson(result);
     final today = DateTime.now().toIso8601String().split('T').first;
 
-    final dataToSend = {
-      today: [parsedJson]
-    };
+    final imageUrl = await uploadImageToServer(image);
 
     try {
-      final response = await http.post(
+      // 1. 기존 데이터 가져오기
+      final getResponse = await http.get(Uri.parse('http://10.0.2.2:8000/search-history'));
+      Map<String, dynamic> existingData = {};
+      if (getResponse.statusCode == 200) {
+        final recoveredBody = recoverCorruptedUtf8(getResponse.body);
+        existingData = jsonDecode(recoveredBody);
+      }
+
+      // 2. 오늘 데이터 병합
+      final todayData = existingData[today] != null && existingData[today] is List
+          ? List.from(existingData[today])
+          : [];
+      final newEntry = {
+        ...parsedJson,
+        if (imageUrl != null) "image_url": imageUrl,
+      };
+      todayData.add(newEntry);
+      existingData[today] = todayData;
+
+      // 3. 서버에 다시 저장
+      final postResponse = await http.post(
         Uri.parse('http://10.0.2.2:8000/save-json'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(dataToSend),
+        headers: {'Content-Type': 'application/json; charset=utf-8'},
+        body: utf8.encode(jsonEncode(existingData)),
       );
 
-      if (response.statusCode == 200) {
-        debugPrint('✅ 서버에 JSON 전송 성공');
+      if (postResponse.statusCode == 200) {
+        debugPrint('✅ JSON 저장 성공');
       } else {
-        debugPrint('❌ 서버 응답 오류: ${response.body}');
+        debugPrint('❌ 서버 응답 오류: ${postResponse.body}');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('❌ JSON 저장 실패')),
         );
       }
     } catch (e) {
-      debugPrint('❗ 예외 발생: $e');
+      debugPrint('❗ JSON 저장 예외 발생: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('⚠️ 서버 연결 실패')),
       );
@@ -124,7 +175,8 @@ class ResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resultParts = result.split(RegExp(r'최종\s*정답\]'));
+    final resultParts = result.split(RegExp(r'\[\u{1F3AF}?\s*최종\s*정답\]', unicode: true));
+
     final hasExplanation = resultParts.length > 1;
 
     final explanationPart = hasExplanation ? resultParts[0] : result;
