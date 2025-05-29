@@ -321,7 +321,7 @@ async def recommend(user_id: str):
     try:
         result = recommend_problems_with_gpt(user_id, path)
 
-        #  이미 리스트로 파싱된 경우 처리 (str이 아님)
+        #  이미 리스트로 파싱된 경우 처리
         if isinstance(result, list):
             return {"recommended": result}
         else:
