@@ -50,7 +50,7 @@ from typing import Any
 #client = OpenAI()
 
 # ⛔️ 민감 정보
-client = OpenAI(api_key="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")
+client = OpenAI(api_key="")
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
