@@ -28,52 +28,61 @@ class HomeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const SizedBox(height: 40),
-            // 오늘의 퀴즈
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => GptQuizScreen(userGrade: userGrade, userId: userId),
+
+            // 오늘의 퀴즈 버튼
+            SizedBox(
+              width: 220,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => GptQuizScreen(userGrade: userGrade, userId: userId),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text(
+                  "오늘의 퀴즈",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'NotoSans',
+                    color: Colors.white,
                   ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text(
-                "오늘의 퀴즈",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'NotoSans',
-                  color: Colors.white,
                 ),
               ),
             ),
+
             const SizedBox(height: 20),
+
             // 문제 검색 버튼
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ImageUploadScreen(userGrade: userGrade),
+            SizedBox(
+              width: 220,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ImageUploadScreen(userGrade: userGrade),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text(
+                  "문제 검색",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'NotoSans',
+                    color: Colors.white,
                   ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                padding: const EdgeInsets.symmetric(horizontal: 42, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text(
-                "문제 검색",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'NotoSans',
-                  color: Colors.white,
                 ),
               ),
             ),
